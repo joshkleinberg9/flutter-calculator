@@ -126,6 +126,33 @@ class _CalculatorPageState extends State<CalculatorPage> {
     });
   }
 
+  void _squareCurrent() {
+    setState(() {
+      if (_expr.isEmpty) return;
+      final last = _expr[_expr.length - 1];
+      if (_isOperator(last)) return;
+      try {
+        final value = _evalExpression(_expr);
+        if (value is num && value.isInfinite) {
+          _accumulator = '${_display} = Error (division by zero)';
+          _expr = '';
+          _display = '';
+          return;
+        }
+        final num numVal = (value is int) ? value.toDouble() : value as double;
+        final squared = numVal * numVal;
+        final formatted = _formatResult(squared);
+        _accumulator = '${_display} = $formatted';
+        _expr = formatted;
+        _display = formatted;
+      } catch (e) {
+        _accumulator = '${_display} = Error';
+        _expr = '';
+        _display = '';
+      }
+    });
+  }
+
   dynamic _evalExpression(String s) {
     // Tokenize
     final tokens = <String>[];
@@ -232,7 +259,8 @@ class _CalculatorPageState extends State<CalculatorPage> {
       '7', '8', '9', '/',
       '4', '5', '6', '*',
       '1', '2', '3', '-',
-      '0', 'C', '=', '+',
+      '0', 'x²', 'C', '=',
+      '+',
     ];
 
     return Scaffold(
@@ -284,6 +312,8 @@ class _CalculatorPageState extends State<CalculatorPage> {
                     return _buildButton(b, bgColor: Colors.orange, onTap: _clearAll);
                   } else if (b == '=') {
                     return _buildButton(b, bgColor: Colors.orange, onTap: _evaluate);
+                  } else if (b == 'x²') {
+                    return _buildButton(b, bgColor: Colors.orange, onTap: _squareCurrent);
                   } else if (operators.contains(b)) {
                     return _buildButton(b, bgColor: Colors.orange, onTap: () => _appendOperator(b));
                   } else {
